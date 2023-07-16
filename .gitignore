@@ -1,0 +1,34 @@
+# Maven build directory
+target/
+
+# Gradle build directory
+build/
+
+# IDE files
+.idea/
+.vscode/
+
+# Spring Boot generated files
+*.log
+*.jar
+*.war
+
+# Spring Boot application properties
+/application.properties
+
+# Spring Boot IDE-specific files
+.springBeans
+.springLoaded
+
+# Compiled Java class files
+*.class
+
+# Log files
+*.log*
+
+.env
+node_modules
+
+private.key
+public.key
+StokYonetimDB.db

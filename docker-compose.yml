@@ -1,0 +1,27 @@
+version: "1.0"
+services:
+  client:
+    container_name: client
+    command: live-server --port=5173 dist
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - 5173:5173
+    depends_on:
+      - server
+    networks:
+      - stokyonetim
+  server:
+    container_name: server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - stokyonetim
+
+networks:
+  stokyonetim:
+    driver: bridge

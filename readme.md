@@ -1,5 +1,5 @@
 #   Description
-This app is created using Spring Boot and React. With the 'StokYonetim', you can add products, stores, parent categories and sub categories, you can track your products easily with this app.
+This app is created using Spring Boot and React. With the 'StokYonetim', you can add products, stores, parent categories and sub categories. Also you can update products and sub categories. You can track your inventories easily with this app.
 
 #   Tools
 ##  Front End
@@ -12,8 +12,8 @@ This app is created using Spring Boot and React. With the 'StokYonetim', you can
 ##  Back End
 1.  Spring-Boot - For rest api creation (security,jpa,hibernate)
 2.  SQLite-JDBC - For sqlite dialeact
-3.  JavaFaker - For fake data creation
+3.  JavaFaker - For fake data creation - There will be fake data entries created to inspect app more easyly
 
 #   Installation
-Pull this repo and install it either with docker compose file or using npm and maven respectively for client and server.
+Pull this repo and install it either with docker compose file or using npm and maven respectively for client and server. Don't forget to run `mvn clean install` before using docker compose. 
 

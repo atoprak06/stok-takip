@@ -37,7 +37,7 @@ public class FakeData implements CommandLineRunner {
     private void initializeData() {
         if (storeRepository.findAll().isEmpty()) {
             Faker faker = new Faker();
-            for (int k = 0; k <= 1; k++) {
+            for (int k = 0; k <= 4; k++) {
                 Store store = Store.builder().name(faker.name().firstName()).build();
                 storeRepository.save(store);
                 for (int i = 0; i <= 1; i++) {

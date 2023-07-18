@@ -111,7 +111,7 @@ const NullActive = (props: Props) => {
   };
 
   const retrieveData = async () => {
-    if (nullActive) {
+    if (nullActive && subCategories.length === 0) {
       const response = await getSubCategoriesParentIsNull("");
       if ("data" in response) {
         setSubCategories(response.data);

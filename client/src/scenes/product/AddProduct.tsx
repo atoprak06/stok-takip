@@ -55,7 +55,7 @@ const AddProduct = (props: Props) => {
   }, [navigate, parentCategoryData, state]);
 
   const validationSchema = Yup.object().shape({
-    name: Yup.string().required("Name is required"),
+    name: Yup.string().required("Name is required").min(3),
     parentCategory: Yup.string().required("Parent category is required"),
     subCategory: Yup.string().required("Sub category is required"),
     stock: Yup.number().required("Stock is required").min(1),

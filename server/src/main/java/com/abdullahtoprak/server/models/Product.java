@@ -1,6 +1,7 @@
 package com.abdullahtoprak.server.models;
 
 import java.io.Serializable;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -24,7 +25,7 @@ import jakarta.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "product")
-public class Product implements Serializable{
+public class Product implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,17 +37,19 @@ public class Product implements Serializable{
     private String name;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "store_id")      
+    @JoinColumn(name = "store_id")
     private Store store;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sub_category_id",nullable = true)
+    @JoinColumn(name = "sub_category_id", nullable = true)
     private SubCategory subCategory;
 
     @NotNull
     @Min(value = 1, message = "Stock can't be less than 1")
     private int stock;
 
-    private String unit;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
 
 }

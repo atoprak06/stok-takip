@@ -1,5 +1,7 @@
 package com.abdullahtoprak.server.dtos;
 
+import com.abdullahtoprak.server.models.Unit;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +15,7 @@ public class ProductDto {
     private Long store;
     private Long subCategory;
     private int stock;
-    private String unit;
+    private Unit unit;
 
     
 }

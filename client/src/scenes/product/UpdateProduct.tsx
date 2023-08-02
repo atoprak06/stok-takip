@@ -3,9 +3,10 @@ import {
   useGetAllStoresMutation,
   useGetProductByIdMutation,
   useGetSubCategoryByParentIdMutation,
+  useGetUnitsQuery,
   useUpdateProductMutation,
 } from "@/api/api";
-import { ParentCategoryI, StoreI, SubCategoryI } from "@/types/Types";
+import { ParentCategoryI, StoreI, SubCategoryI, UnitI } from "@/types/Types";
 import {
   Box,
   Button,
@@ -33,6 +34,7 @@ const UpdateProduct = (props: Props) => {
   const [getParentCategories] = useGetAllParentCategoriesMutation();
   const [getStores] = useGetAllStoresMutation();
   const [updateProduct] = useUpdateProductMutation();
+  const { data: unitData } = useGetUnitsQuery("");
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -76,6 +78,7 @@ const UpdateProduct = (props: Props) => {
         }
 
         if ("data" in productData) {
+          console.log(productData);
           setInitialValues({
             name: productData.data.name,
             parentCategory:
@@ -87,7 +90,8 @@ const UpdateProduct = (props: Props) => {
                 ? productData.data.subCategory.id
                 : "",
             stock: productData.data.stock,
-            unit: productData.data.unit,
+            unit:
+              productData.data.unit !== null ? productData.data.unit.id : "",
             store: productData.data.store.id,
           });
         }
@@ -260,8 +264,11 @@ const UpdateProduct = (props: Props) => {
                 <InputLabel htmlFor="unit">Unit</InputLabel>
                 <Field as={Select} id="unit" name="unit" label="Unit">
                   <MenuItem value="">Select a unit</MenuItem>
-                  <MenuItem value="piece">Piece</MenuItem>
-                  <MenuItem value="kg">Kg</MenuItem>
+                  {unitData?.map((unit: UnitI) => (
+                    <MenuItem key={unit.id} value={unit.id}>
+                      {unit.name}
+                    </MenuItem>
+                  ))}
                 </Field>
                 <ErrorMessage name="unit" component="div" />
               </FormControl>

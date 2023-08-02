@@ -2,8 +2,9 @@ import {
   useCreateNewProductMutation,
   useGetParentCategoriesQuery,
   useGetSubCategoryByParentIdMutation,
+  useGetUnitsQuery,
 } from "@/api/api";
-import { ParentCategoryI, SubCategoryI } from "@/types/Types";
+import { ParentCategoryI, SubCategoryI, UnitI } from "@/types/Types";
 import {
   Box,
   Button,
@@ -24,6 +25,7 @@ type Props = {};
 
 const AddProduct = (props: Props) => {
   const { data: parentCategoryData } = useGetParentCategoriesQuery("");
+  const { data: unitData } = useGetUnitsQuery("");
   const [getSubCategories] = useGetSubCategoryByParentIdMutation();
   const [createNewProduct] = useCreateNewProductMutation();
   const location = useLocation();
@@ -177,8 +179,11 @@ const AddProduct = (props: Props) => {
                 <InputLabel htmlFor="unit">Unit</InputLabel>
                 <Field as={Select} id="unit" name="unit" label="Unit">
                   <MenuItem value="">Select a unit</MenuItem>
-                  <MenuItem value="piece">Piece</MenuItem>
-                  <MenuItem value="kg">Kg</MenuItem>
+                  {unitData?.map((unit: UnitI) => (
+                    <MenuItem key={unit.id} value={unit.id}>
+                      {unit.name}
+                    </MenuItem>
+                  ))}
                 </Field>
                 <ErrorMessage name="unit" component="div" />
               </FormControl>

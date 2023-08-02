@@ -59,7 +59,10 @@ const ActiveStore = (props: Props) => {
       field: "unit",
       headerName: "unit",
       flex: 0.5,
-      renderCell: (params: GridCellParams) => `${params.value}`,
+      renderCell: (params: GridCellParams) => {
+        const unitName = (params.value as { name?: string })?.name || "";
+        return unitName;
+      },
     },
     {
       field: "subCategory",

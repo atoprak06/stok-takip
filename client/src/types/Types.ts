@@ -27,11 +27,16 @@ export interface ProductI {
   id: number;
   name: string;
   stock: number;
-  unit: string;
+  unit: UnitI;
   subCategory: SubCategoryI;
 }
 
 export interface StoreDataI {
   count: number;
   products: Array<ProductI>;
+}
+
+export interface UnitI {
+  id: number;
+  name: string;
 }

@@ -49,6 +49,9 @@ export const api = createApi({
     getParentCategories: builder.query({
       query: () => "/api/v1/parent-category",
     }),
+    getUnits: builder.query({
+      query: () => "/api/v1/unit",
+    }),
     createNewProduct: builder.mutation<null, FormData>({
       query: (formData) => ({
         url: `/api/v1/products`,
@@ -161,6 +164,7 @@ export const {
   useGetProductsByStoreMutation,
   useGetStoresQuery,
   useGetParentCategoriesQuery,
+  useGetUnitsQuery,
   useCreateNewProductMutation,
   useDeleteProductMutation,
   useGetProductByIdMutation,

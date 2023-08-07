@@ -12,6 +12,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -28,20 +30,43 @@ public class SubCategory implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    public Long getId() {
-        return id;
-    }
+    @NotBlank(message = "Category name can't be empty")
+    @Size(min = 2, message = "{validation.name.size.too_short}")
+    @Size(max = 200, message = "{validation.name.size.too_long}")
+    private String name;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_category_id", nullable = true)
+    private ParentCategory parentCategory;
+
+    @OneToMany(mappedBy = "subCategory", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JsonIgnore
+    private List<Product> products;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "sub_category_attribute",
+        joinColumns = @JoinColumn(name = "sub_category_id"),
+        inverseJoinColumns = @JoinColumn(name = "attribute_id")
+    )
+    @JsonIgnore
+    private List<Attribute> attributes;
 
     public SubCategory() {
     }
 
     public SubCategory(Long id,
             @NotBlank(message = "Category name can't be empty") @Size(min = 2, message = "{validation.name.size.too_short}") @Size(max = 200, message = "{validation.name.size.too_long}") String name,
-            ParentCategory parentCategory, List<Product> products) {
+            ParentCategory parentCategory, List<Product> products,List<Attribute> attributes) {
         this.id = id;
         this.name = name;
         this.parentCategory = parentCategory;
         this.products = products;
+        this.attributes = attributes;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public void setId(Long id) {
@@ -72,19 +97,13 @@ public class SubCategory implements Serializable {
         this.products = products;
     }
 
-    @NotBlank(message = "Category name can't be empty")
-    @Size(min = 2, message = "{validation.name.size.too_short}")
-    @Size(max = 200, message = "{validation.name.size.too_long}")
-    private String name;
+    public List<Attribute> getAttributes() {
+        return attributes;
+    }
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "parent_category_id",nullable = true)
-    private ParentCategory parentCategory;
-
-    @OneToMany(mappedBy = "subCategory", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JsonIgnore
-    private List<Product> products;
-
+    public void setAttributes(List<Attribute> attributes) {
+        this.attributes = attributes;
+    }
     
 
 }

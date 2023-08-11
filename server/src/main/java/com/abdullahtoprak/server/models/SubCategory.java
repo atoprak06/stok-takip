@@ -1,6 +1,7 @@
 package com.abdullahtoprak.server.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,20 +45,17 @@ public class SubCategory implements Serializable {
     private List<Product> products;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "sub_category_attribute",
-        joinColumns = @JoinColumn(name = "sub_category_id"),
-        inverseJoinColumns = @JoinColumn(name = "attribute_id")
-    )
+    @JoinTable(name = "sub_category_attribute", joinColumns = @JoinColumn(name = "sub_category_id"), inverseJoinColumns = @JoinColumn(name = "attribute_id"))
+    @Builder.Default
     @JsonIgnore
-    private List<Attribute> attributes;
+    private List<Attribute> attributes = new ArrayList<>();
 
     public SubCategory() {
     }
 
     public SubCategory(Long id,
             @NotBlank(message = "Category name can't be empty") @Size(min = 2, message = "{validation.name.size.too_short}") @Size(max = 200, message = "{validation.name.size.too_long}") String name,
-            ParentCategory parentCategory, List<Product> products,List<Attribute> attributes) {
+            ParentCategory parentCategory, List<Product> products, List<Attribute> attributes) {
         this.id = id;
         this.name = name;
         this.parentCategory = parentCategory;
@@ -104,6 +102,5 @@ public class SubCategory implements Serializable {
     public void setAttributes(List<Attribute> attributes) {
         this.attributes = attributes;
     }
-    
 
 }

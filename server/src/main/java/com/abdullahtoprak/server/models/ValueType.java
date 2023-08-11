@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 public class ValueType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
 
     @OneToMany(mappedBy = "valueType", cascade = { CascadeType.PERSIST, CascadeType.MERGE })

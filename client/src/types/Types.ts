@@ -40,3 +40,20 @@ export interface UnitI {
   id: number;
   name: string;
 }
+
+export interface AttributeI {
+  id: number;
+  name: string;
+  valueType: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface AttributeValueI {
+  attribute: AttributeI;
+  booleanValue: boolean | null;
+  stringValue: string | null;
+  numberValue: number | null;
+  product: ProductI;
+}

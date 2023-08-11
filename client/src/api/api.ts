@@ -52,7 +52,7 @@ export const api = createApi({
     getUnits: builder.query({
       query: () => "/api/v1/unit",
     }),
-    createNewProduct: builder.mutation<null, FormData>({
+    createNewProduct: builder.mutation({
       query: (formData) => ({
         url: `/api/v1/products`,
         method: "POST",
@@ -90,10 +90,10 @@ export const api = createApi({
       }),
     }),
     updateProduct: builder.mutation({
-      query: ({ productId, formData }) => ({
+      query: ({ productId, values }) => ({
         url: `/api/v1/products/${productId}`,
         method: "PATCH",
-        body: formData,
+        body: values,
       }),
     }),
     addStore: builder.mutation({
@@ -154,10 +154,24 @@ export const api = createApi({
         method: "GET",
       }),
     }),
+    getAttributeValuesByProduct: builder.mutation({
+      query: ({ productId }) => ({
+        url: `/api/v1/attribute-value/product/${productId}`,
+        method: "GET",
+      }),
+    }),
+    getAttributesBySubCategory: builder.mutation({
+      query: ({ subCategoryId }) => ({
+        url: `/api/v1/attributes/category/${subCategoryId}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
 export const {
+  useGetAttributesBySubCategoryMutation,
+  useGetAttributeValuesByProductMutation,
   useLoginMutation,
   useRegisterMutation,
   useVerifyTokenQuery,

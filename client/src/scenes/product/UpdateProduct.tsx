@@ -1,16 +1,27 @@
 import {
   useGetAllParentCategoriesMutation,
   useGetAllStoresMutation,
+  useGetAttributeValuesByProductMutation,
+  useGetAttributesBySubCategoryMutation,
   useGetProductByIdMutation,
   useGetSubCategoryByParentIdMutation,
   useGetUnitsQuery,
   useUpdateProductMutation,
 } from "@/api/api";
-import { ParentCategoryI, StoreI, SubCategoryI, UnitI } from "@/types/Types";
+import {
+  AttributeI,
+  AttributeValueI,
+  ParentCategoryI,
+  StoreI,
+  SubCategoryI,
+  UnitI,
+} from "@/types/Types";
 import {
   Box,
   Button,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
@@ -19,7 +30,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
@@ -34,6 +45,8 @@ const UpdateProduct = (props: Props) => {
   const [getParentCategories] = useGetAllParentCategoriesMutation();
   const [getStores] = useGetAllStoresMutation();
   const [updateProduct] = useUpdateProductMutation();
+  const [getAttributeValues] = useGetAttributeValuesByProductMutation();
+  const [getAttributes] = useGetAttributesBySubCategoryMutation();
   const { data: unitData } = useGetUnitsQuery("");
 
   const theme = useTheme();
@@ -42,6 +55,8 @@ const UpdateProduct = (props: Props) => {
   const [parentCategory, setParentCategory] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [stores, setStores] = useState([]);
+  const [attributes, setAttributes] = useState<AttributeI[]>([]);
+
   const [initialValues, setInitialValues] = useState({
     name: "",
     parentCategory: "",
@@ -49,14 +64,76 @@ const UpdateProduct = (props: Props) => {
     stock: 0,
     unit: "",
     store: "",
+    attributes: [],
   });
 
   const handleParentCategoryChange = async (selectedCategory: string) => {
-    const subCategoriesFetched = await getSubCategories({
-      parentId: selectedCategory,
-    });
-    if ("data" in subCategoriesFetched) {
-      setSubCategories(subCategoriesFetched?.data);
+    if (parseInt(selectedCategory)) {
+      setInitialValues((prev) => ({
+        ...prev,
+        subCategory: "",
+        attributes: [],
+        parentCategory: selectedCategory,
+      }));
+      const subCategoriesFetched = await getSubCategories({
+        parentId: selectedCategory,
+      });
+      if ("data" in subCategoriesFetched) {
+        setSubCategories(subCategoriesFetched?.data);
+      }
+    } else {
+      setInitialValues((prev) => ({
+        ...prev,
+        subCategory: "",
+        attributes: [],
+        parentCategory: "",
+      }));
+      setSubCategories([]);
+    }
+
+    setAttributes([]);
+  };
+
+  const handleSubCategoryChange = async (selectedSubCategory: string) => {
+    if (parseInt(selectedSubCategory)) {
+      const attributesFetched = await getAttributes({
+        subCategoryId: selectedSubCategory,
+      });
+      const attributeValuesFetched = await getAttributeValues({
+        productId: state,
+      });
+      if ("data" in attributesFetched) {
+        setAttributes(attributesFetched?.data);
+        if ("data" in attributeValuesFetched) {
+          const attributeInitialValues = attributeValuesFetched.data.reduce(
+            (acc: Object, attribute: AttributeValueI) => {
+              const fieldName = attribute.attribute.id;
+
+              return {
+                ...acc,
+                [fieldName]: attribute.stringValue
+                  ? attribute.stringValue
+                  : attribute.numberValue
+                  ? attribute.numberValue
+                  : attribute.booleanValue,
+              };
+            },
+            {},
+          );
+          setInitialValues((prev) => ({
+            ...prev,
+            attributes: attributeInitialValues,
+            subCategory: selectedSubCategory,
+          }));
+        }
+      }
+    } else {
+      setAttributes([]);
+      setInitialValues((prev) => ({
+        ...prev,
+        attributes: [],
+        subCategory: "",
+      }));
     }
   };
 
@@ -68,6 +145,7 @@ const UpdateProduct = (props: Props) => {
         const productData = await getProductData({ productId: state });
         const parentCategoryData = await getParentCategories("");
         const storeData = await getStores("");
+
         if ("data" in productData && productData?.data?.subCategory !== null) {
           const subCategoryData = await getSubCategories({
             parentId: productData?.data?.subCategory?.parentCategory?.id,
@@ -78,22 +156,50 @@ const UpdateProduct = (props: Props) => {
         }
 
         if ("data" in productData) {
-          console.log(productData);
-          setInitialValues({
-            name: productData.data.name,
-            parentCategory:
+          const attributesData = await getAttributes({
+            subCategoryId:
               productData.data.subCategory !== null
-                ? productData.data.subCategory.parentCategory?.id
+                ? parseInt(productData.data.subCategory.id)
                 : "",
-            subCategory:
-              productData.data.subCategory !== null
-                ? productData.data.subCategory.id
-                : "",
-            stock: productData.data.stock,
-            unit:
-              productData.data.unit !== null ? productData.data.unit.id : "",
-            store: productData.data.store.id,
           });
+          const attributeValuesData = await getAttributeValues({
+            productId: state,
+          });
+
+          if ("data" in attributeValuesData && "data" in attributesData) {
+            const attributeInitialValues = attributeValuesData.data.reduce(
+              (acc: Object, attribute: AttributeValueI) => {
+                const attrId = attribute.attribute.id;
+
+                return {
+                  ...acc,
+                  [attrId]: attribute.stringValue
+                    ? attribute.stringValue
+                    : attribute.numberValue
+                    ? attribute.numberValue
+                    : attribute.booleanValue,
+                };
+              },
+              {},
+            );
+            setAttributes(attributesData?.data);
+            setInitialValues({
+              name: productData.data.name,
+              parentCategory:
+                productData.data.subCategory !== null
+                  ? productData.data.subCategory.parentCategory?.id
+                  : "",
+              subCategory:
+                productData.data.subCategory !== null
+                  ? productData.data.subCategory.id
+                  : "",
+              stock: productData.data.stock,
+              unit:
+                productData.data.unit !== null ? productData.data.unit.id : "",
+              store: productData.data.store.id,
+              attributes: attributeInitialValues,
+            });
+          }
         }
         if ("data" in parentCategoryData) {
           setParentCategory(parentCategoryData.data);
@@ -114,10 +220,12 @@ const UpdateProduct = (props: Props) => {
         stock: 0,
         unit: "",
         store: "",
+        attributes: [],
       });
       setParentCategory([]);
       setStores([]);
       setSubCategories([]);
+      setAttributes([]);
     };
   }, [
     getParentCategories,
@@ -126,6 +234,8 @@ const UpdateProduct = (props: Props) => {
     getSubCategories,
     navigate,
     state,
+    getAttributeValues,
+    getAttributes,
   ]);
 
   const validationSchema = Yup.object().shape({
@@ -137,11 +247,7 @@ const UpdateProduct = (props: Props) => {
   });
 
   const handleSubmit = async (values: any) => {
-    const formData = new FormData();
-    for (let value in values) {
-      formData.append(value, values[value]);
-    }
-    await updateProduct({ productId: state, formData });
+    await updateProduct({ productId: state, values });
     navigate("/");
   };
 
@@ -217,6 +323,7 @@ const UpdateProduct = (props: Props) => {
                   onChange={(e) => {
                     const selectedCategory = e.target.value;
                     setFieldValue("parentCategory", selectedCategory);
+                    setFieldValue("subCategory", "");
                     handleParentCategoryChange(selectedCategory);
                   }}
                 >
@@ -237,7 +344,12 @@ const UpdateProduct = (props: Props) => {
                   name="subCategory"
                   label="Sub Category"
                   value={values?.subCategory}
-                  onChange={(e) => setFieldValue("subCategory", e.target.value)}
+                  onChange={(e) => {
+                    const selectedSubCategory = e.target.value;
+                    setFieldValue("subCategory", e.target.value);
+                    handleSubCategoryChange(selectedSubCategory);
+                    setFieldValue("attributes", []);
+                  }}
                 >
                   <MenuItem value="">Select a sub-category</MenuItem>
                   {subCategories?.map((category: SubCategoryI) => (
@@ -272,6 +384,91 @@ const UpdateProduct = (props: Props) => {
                 </Field>
                 <ErrorMessage name="unit" component="div" />
               </FormControl>
+
+              <Typography
+                variant="h4"
+                color={theme.palette.primary.main}
+                fontWeight={500}
+                mx={"auto"}
+                sx={{ textDecoration: "underline" }}
+              >
+                Attributes
+              </Typography>
+
+              {attributes?.map((attr: AttributeI) => {
+                const matchingValue = values.attributes[attr.id];
+                if (attr.valueType.name === "String") {
+                  return (
+                    <Field
+                      value={matchingValue !== undefined ? matchingValue : ""}
+                      key={`attr_${attr.id}`}
+                      as={TextField}
+                      type="text"
+                      id={`attr_${attr.id}`}
+                      name={attr.name}
+                      label={attr.name}
+                      variant="outlined"
+                      fullWidth
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setFieldValue("attributes", {
+                          ...values.attributes,
+                          [attr.id]: e.target.value,
+                        });
+                      }}
+                    />
+                  );
+                } else if (attr.valueType.name === "Boolean") {
+                  return (
+                    <FormControlLabel
+                      key={`attr_${attr.id}`}
+                      control={
+                        <Field
+                          as={Checkbox}
+                          type="checkbox"
+                          id={`attr_${attr.id}`}
+                          name={attr.name}
+                          checked={
+                            matchingValue !== undefined ? matchingValue : false
+                          }
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            setFieldValue("attributes", {
+                              ...values.attributes,
+                              [attr.id]: e.target.checked,
+                            });
+                          }}
+                        />
+                      }
+                      label={attr.name}
+                    />
+                  );
+                } else if (attr.valueType.name === "Number") {
+                  return (
+                    <Field
+                      value={matchingValue !== undefined ? matchingValue : ""}
+                      key={`attr_${attr.id}`}
+                      as={TextField}
+                      type="number"
+                      id={`attr_${attr.id}`}
+                      name={attr.name}
+                      label={attr.name}
+                      variant="outlined"
+                      fullWidth
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        const newValue =
+                          e.target.value !== ""
+                            ? parseFloat(e.target.value)
+                            : null;
+
+                        setFieldValue("attributes", {
+                          ...values.attributes,
+                          [attr.id]: newValue,
+                        });
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })}
 
               <Button
                 type="submit"

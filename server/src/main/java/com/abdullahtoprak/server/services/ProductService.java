@@ -13,9 +13,11 @@ import com.abdullahtoprak.server.dtos.ProductDto;
 import com.abdullahtoprak.server.models.Product;
 import com.abdullahtoprak.server.models.Store;
 import com.abdullahtoprak.server.models.SubCategory;
+import com.abdullahtoprak.server.models.Unit;
 import com.abdullahtoprak.server.repository.ProductRepository;
 import com.abdullahtoprak.server.repository.StoreRepository;
 import com.abdullahtoprak.server.repository.SubCategoryRepository;
+import com.abdullahtoprak.server.repository.UnitRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -26,21 +28,27 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final StoreRepository storeRepository;
     private final SubCategoryRepository subCategoryRepository;
+    private final AttributeValueService attributeValueService;
+    private final UnitRepository unitRepository;
 
     /* create product */
     public Product createProduct(ProductDto productDto) {
         Store store = storeRepository.findById(productDto.getStore()).get();
         SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategory()).get();
+        Unit unit = unitRepository.findById(productDto.getUnit()).get();
         Product newProduct = Product.builder().name(productDto.getName()).stock(productDto.getStock()).store(store)
-                .subCategory(subCategory).unit(productDto.getUnit()).build();
-        Product savedProduct = productRepository.save(newProduct);
+                .subCategory(subCategory).unit(unit).build();
+        Product savedProduct = productRepository.saveAndFlush(newProduct);
+
+        attributeValueService.createAttributeValues(savedProduct.getId(), productDto.getAttributes());
+
         return savedProduct;
     }
 
     /* get product by id */
-    public Product getProductById(Long id) {        
+    public Product getProductById(Long id) {
         Optional<Product> product = productRepository.findById(id);
-        if(product.isPresent()){
+        if (product.isPresent()) {
             return product.get();
         }
         return null;
@@ -54,9 +62,11 @@ public class ProductService {
         Store store = storeRepository.findById(productDto.getStore()).get();
         product.setStore(store);
         SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategory()).get();
+        Optional<Unit> unit = unitRepository.findById(productDto.getUnit());
         product.setSubCategory(subCategory);
-        product.setUnit(productDto.getUnit());
+        product.setUnit(unit.get());
         Product updatedProduct = productRepository.save(product);
+        attributeValueService.updateByProduct(id, productDto.getAttributes());
         return updatedProduct;
     }
 

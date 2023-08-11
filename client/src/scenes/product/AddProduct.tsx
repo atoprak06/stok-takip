@@ -1,14 +1,22 @@
 import {
   useCreateNewProductMutation,
+  useGetAttributesBySubCategoryMutation,
   useGetParentCategoriesQuery,
   useGetSubCategoryByParentIdMutation,
   useGetUnitsQuery,
 } from "@/api/api";
-import { ParentCategoryI, SubCategoryI, UnitI } from "@/types/Types";
+import {
+  AttributeI,
+  ParentCategoryI,
+  SubCategoryI,
+  UnitI,
+} from "@/types/Types";
 import {
   Box,
   Button,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
@@ -17,7 +25,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
@@ -27,6 +35,7 @@ const AddProduct = (props: Props) => {
   const { data: parentCategoryData } = useGetParentCategoriesQuery("");
   const { data: unitData } = useGetUnitsQuery("");
   const [getSubCategories] = useGetSubCategoryByParentIdMutation();
+  const [getAttributes] = useGetAttributesBySubCategoryMutation();
   const [createNewProduct] = useCreateNewProductMutation();
   const location = useLocation();
   const { state } = location;
@@ -35,13 +44,49 @@ const AddProduct = (props: Props) => {
 
   const [parentCategory, setParentCategory] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [attributes, setAttributes] = useState<AttributeI[]>([]);
+  const [initialValues, setInitialValues] = useState({
+    name: "",
+    parentCategory: "",
+    subCategory: "",
+    stock: "",
+    unit: "",
+    store: state,
+    attributes: [],
+  });
 
   const handleParentCategoryChange = async (selectedCategory: string) => {
-    const subCategoriesFetched = await getSubCategories({
-      parentId: selectedCategory,
+    if (parseInt(selectedCategory) > 0) {
+      const subCategoriesFetched = await getSubCategories({
+        parentId: selectedCategory,
+      });
+      if ("data" in subCategoriesFetched) {
+        setSubCategories(subCategoriesFetched.data);
+      }
+    } else {
+      setSubCategories([]);
+    }
+  };
+
+  const handleSubCategoryChange = async (selectedSubCategory: string) => {
+    const attributesFetched = await getAttributes({
+      subCategoryId: selectedSubCategory,
     });
-    if ("data" in subCategoriesFetched) {
-      setSubCategories(subCategoriesFetched.data);
+    if ("data" in attributesFetched) {
+      setAttributes(attributesFetched.data);
+      const attributeInitialValues = attributesFetched.data.reduce(
+        (acc: Object, attribute: AttributeI) => {
+          const fieldName = attribute.id;
+          return {
+            ...acc,
+            [fieldName]: "",
+          };
+        },
+        {},
+      );
+      setInitialValues((prev) => {
+        return { ...prev, attributes: attributeInitialValues };
+      });
     }
   };
 
@@ -49,10 +94,12 @@ const AddProduct = (props: Props) => {
     if (!state) {
       navigate("/dashboard");
     }
+
     setParentCategory(parentCategoryData);
     return () => {
       setParentCategory([]);
       setSubCategories([]);
+      setAttributes([]);
     };
   }, [navigate, parentCategoryData, state]);
 
@@ -64,21 +111,8 @@ const AddProduct = (props: Props) => {
     unit: Yup.string().required("Select unit"),
   });
 
-  const initialValues = {
-    name: "",
-    parentCategory: "",
-    subCategory: "",
-    stock: "",
-    unit: "",
-    store: state,
-  };
-
   const handleSubmit = async (values: any) => {
-    const formData = new FormData();
-    for (let value in values) {
-      formData.append(value, values[value]);
-    }
-    await createNewProduct(formData);
+    await createNewProduct(values);
     navigate("/");
   };
 
@@ -133,6 +167,7 @@ const AddProduct = (props: Props) => {
                     const selectedCategory = e.target.value;
                     setFieldValue("parentCategory", selectedCategory);
                     handleParentCategoryChange(selectedCategory);
+                    setFieldValue("subCategory", "");
                   }}
                 >
                   <MenuItem value="">Select a parent category</MenuItem>
@@ -152,7 +187,11 @@ const AddProduct = (props: Props) => {
                   name="subCategory"
                   label="Sub Category"
                   value={values.subCategory}
-                  onChange={(e) => setFieldValue("subCategory", e.target.value)}
+                  onChange={(e) => {
+                    setFieldValue("subCategory", e.target.value);
+                    handleSubCategoryChange(e.target.value);
+                    setFieldValue("attributes", {});
+                  }}
                 >
                   <MenuItem value="">Select a sub-category</MenuItem>
                   {subCategories?.map((category: SubCategoryI) => (
@@ -187,6 +226,91 @@ const AddProduct = (props: Props) => {
                 </Field>
                 <ErrorMessage name="unit" component="div" />
               </FormControl>
+
+              <Typography
+                variant="h4"
+                color={theme.palette.primary.main}
+                fontWeight={500}
+                mx={"auto"}
+                sx={{ textDecoration: "underline" }}
+              >
+                Attributes
+              </Typography>
+
+              {attributes?.map((attr) => {
+                const matchingValue = values.attributes[attr.id];
+                if (attr.valueType.name === "String") {
+                  return (
+                    <Field
+                      value={matchingValue !== undefined ? matchingValue : ""}
+                      key={`attr_${attr.id}`}
+                      as={TextField}
+                      type="text"
+                      id={`attr_${attr.id}`}
+                      name={attr.name}
+                      label={attr.name}
+                      variant="outlined"
+                      fullWidth
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setFieldValue("attributes", {
+                          ...values.attributes,
+                          [attr.id]: e.target.value,
+                        });
+                      }}
+                    />
+                  );
+                } else if (attr.valueType.name === "Boolean") {
+                  return (
+                    <FormControlLabel
+                      key={`attr_${attr.id}`}
+                      control={
+                        <Field
+                          as={Checkbox}
+                          type="checkbox"
+                          id={`attr_${attr.id}`}
+                          name={attr.name}
+                          checked={
+                            matchingValue !== undefined ? matchingValue : false
+                          }
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            setFieldValue("attributes", {
+                              ...values.attributes,
+                              [attr.id]: e.target.checked,
+                            });
+                          }}
+                        />
+                      }
+                      label={attr.name}
+                    />
+                  );
+                } else if (attr.valueType.name === "Number") {
+                  return (
+                    <Field
+                      value={matchingValue !== undefined ? matchingValue : ""}
+                      key={`attr_${attr.id}`}
+                      as={TextField}
+                      type="number"
+                      id={`attr_${attr.id}`}
+                      name={attr.name}
+                      label={attr.name}
+                      variant="outlined"
+                      fullWidth
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        const newValue =
+                          e.target.value !== ""
+                            ? parseFloat(e.target.value)
+                            : null;
+
+                        setFieldValue("attributes", {
+                          ...values.attributes,
+                          [attr.id]: newValue,
+                        });
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })}
 
               <Button
                 type="submit"

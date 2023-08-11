@@ -60,8 +60,5 @@ public class Product implements Serializable {
     @OneToMany(mappedBy = "product", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JsonIgnore
     private List<AttributeValue> attributeValue;
-    
-
-    
 
 }

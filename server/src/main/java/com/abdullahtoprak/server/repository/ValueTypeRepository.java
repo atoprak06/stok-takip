@@ -6,4 +6,4 @@ import com.abdullahtoprak.server.models.ValueType;
 
 public interface ValueTypeRepository extends JpaRepository<ValueType,Long> {
     
-}
+} 

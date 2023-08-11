@@ -1,6 +1,8 @@
 package com.abdullahtoprak.server.fakeData;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.boot.CommandLineRunner;
@@ -64,19 +66,6 @@ public class FakeData implements CommandLineRunner {
 
             ValueType[] types = { type1, type2, type3 };
 
-            for (int u = 0; u <= 2; u++) {
-                int randomIndex = random.nextInt(types.length);
-                ValueType randomValueType = types[randomIndex];
-                Attribute attribute = Attribute.builder()
-                        .name(faker.name().firstName())
-                        .valueType(randomValueType)
-                        .build();
-                attributeRepository.save(attribute);
-
-            }
-
-            List<Attribute> attributes = attributeRepository.findAll();
-
             for (int k = 0; k <= 4; k++) {
                 Store store = Store.builder().name(faker.name().firstName()).build();
                 Unit unit = Unit.builder().name(faker.name().title()).build();
@@ -91,6 +80,23 @@ public class FakeData implements CommandLineRunner {
                                 .parentCategory(parentCategory).build();
                         subCategoryRepository.save(subCategory);
 
+                        List<Attribute> attrs = new ArrayList<Attribute>();
+
+                        for (int u = 0; u <= faker.random().nextInt(3, 9); u++) {
+                            int randomIndex = random.nextInt(types.length);
+                            ValueType randomValueType = types[randomIndex];
+                            Attribute attribute = Attribute.builder()
+                                    .name(faker.name().firstName())
+                                    .valueType(randomValueType)
+                                    .build();
+                            attributeRepository.save(attribute);
+                            attrs.add(attribute);
+                        }
+
+                        subCategory.getAttributes().addAll(attrs);
+
+                        subCategoryRepository.save(subCategory);
+
                         for (int t = 0; t <= 30; t++) {
 
                             Product product = Product.builder().name(faker.commerce().productName()).store(store)
@@ -98,31 +104,78 @@ public class FakeData implements CommandLineRunner {
                                     .stock(faker.random().nextInt(1, 1000)).unit(unit).build();
                             productRepository.save(product);
 
+                            for (int ı = 0; ı <= faker.random().nextInt(2, 5); ı++) {
 
-                            for (int ı = 0; ı <= 2; ı++) {                                
+                                Attribute randomAttribute = attrs.get(random.nextInt(attrs.size() - 1));
 
-                                if (ı == 0) {
-                                    AttributeValue attributeValueOne = AttributeValue.builder()
-                                            .booleanValue(random.nextBoolean())
-                                            .attribute(attributes.get(ı)).build();
-                                    attributeValueRepository.save(attributeValueOne);
+                                Optional<List<AttributeValue>> attributeValuesByProduct = attributeValueRepository
+                                        .findByProductId(product.getId());
 
-                                } else if (ı == 1) {
-                                    AttributeValue attributeValueTwo = AttributeValue.builder()
-                                            .numberValue(faker.random().nextInt(1, 1000))
-                                            .attribute(attributes.get(ı)).build();
-                                    attributeValueRepository.save(attributeValueTwo);
+                                if (attributeValuesByProduct.isPresent()) {
+                                    List<AttributeValue> attributeValues = attributeValuesByProduct.get();
 
-                                } else if (ı == 2) {
-                                    AttributeValue attributeValueThree = AttributeValue.builder()
-                                            .stringValue(faker.name().firstName())
-                                            .attribute(attributes.get(ı)).build();
-                                    attributeValueRepository.save(attributeValueThree);
+                                    boolean attributeFound = attributeValues.stream()
+                                            .map(AttributeValue::getAttribute)
+                                            .anyMatch(attribute -> attribute.equals(randomAttribute));
+
+                                    if (!attributeFound) {
+
+                                        AttributeValue attributeValue = AttributeValue.builder().product(product)
+                                                .attribute(randomAttribute).build();
+
+                                        String type = randomAttribute.getValueType().getName();
+
+                                        if (type.equals("String")) {
+                                            attributeValue.setStringValue(faker.name().firstName());
+                                        } else if (type.equals("Number")) {
+                                            attributeValue.setNumberValue(faker.random().nextInt(1, 1000));
+                                        } else {
+                                            attributeValue.setBooleanValue(random.nextBoolean());
+                                        }
+
+                                        attributeValueRepository.save(attributeValue);
+
+                                    }
+
+                                } else {
+                                    AttributeValue attributeValue = AttributeValue.builder().product(product)
+                                            .attribute(randomAttribute).build();
+
+                                    String type = randomAttribute.getValueType().getName();
+
+                                    if (type.equals("String")) {
+                                        attributeValue.setStringValue(faker.name().firstName());
+                                    } else if (type.equals("Number")) {
+                                        attributeValue.setNumberValue(faker.random().nextInt(1, 1000));
+                                    } else {
+                                        attributeValue.setBooleanValue(random.nextBoolean());
+                                    }
+
+                                    attributeValueRepository.save(attributeValue);
 
                                 }
-                            }                           
 
-                           
+                                // if (ı == 0) {
+                                // AttributeValue attributeValueThree = AttributeValue.builder()
+                                // .stringValue(faker.name().firstName()).product(product)
+                                // .attribute(attrs.get(ı)).build();
+                                // attributeValueRepository.save(attributeValueThree);
+
+                                // } else if (ı == 1) {
+                                // AttributeValue attributeValueOne = AttributeValue.builder()
+                                // .booleanValue(random.nextBoolean()).product(product)
+                                // .attribute(attrs.get(ı)).build();
+                                // attributeValueRepository.save(attributeValueOne);
+
+                                // } else if (ı == 2) {
+                                // AttributeValue attributeValueTwo = AttributeValue.builder()
+                                // .numberValue(faker.random().nextInt(1, 1000)).product(product)
+                                // .attribute(attrs.get(ı)).build();
+                                // attributeValueRepository.save(attributeValueTwo);
+
+                                // }
+                            }
+
                         }
                     }
                 }

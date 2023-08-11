@@ -9,13 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDto {
+public class AttributeValueDto {
 
-    private String name;
-    private Long store;
-    private Long subCategory;
-    private int stock;
-    private Long unit;
     private Map<Long, Object> attributes;
 
 }

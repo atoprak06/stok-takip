@@ -104,7 +104,7 @@ public class FakeData implements CommandLineRunner {
                                     .stock(faker.random().nextInt(1, 1000)).unit(unit).build();
                             productRepository.save(product);
 
-                            for (int ı = 0; ı <= faker.random().nextInt(2, 5); ı++) {
+                            for (int z = 0; z <= faker.random().nextInt(2, 5); z++) {
 
                                 Attribute randomAttribute = attrs.get(random.nextInt(attrs.size() - 1));
 
@@ -116,7 +116,7 @@ public class FakeData implements CommandLineRunner {
 
                                     boolean attributeFound = attributeValues.stream()
                                             .map(AttributeValue::getAttribute)
-                                            .anyMatch(attribute -> attribute.equals(randomAttribute));
+                                            .anyMatch(attribute -> attribute.getId() == randomAttribute.getId());
 
                                     if (!attributeFound) {
 
@@ -155,25 +155,6 @@ public class FakeData implements CommandLineRunner {
 
                                 }
 
-                                // if (ı == 0) {
-                                // AttributeValue attributeValueThree = AttributeValue.builder()
-                                // .stringValue(faker.name().firstName()).product(product)
-                                // .attribute(attrs.get(ı)).build();
-                                // attributeValueRepository.save(attributeValueThree);
-
-                                // } else if (ı == 1) {
-                                // AttributeValue attributeValueOne = AttributeValue.builder()
-                                // .booleanValue(random.nextBoolean()).product(product)
-                                // .attribute(attrs.get(ı)).build();
-                                // attributeValueRepository.save(attributeValueOne);
-
-                                // } else if (ı == 2) {
-                                // AttributeValue attributeValueTwo = AttributeValue.builder()
-                                // .numberValue(faker.random().nextInt(1, 1000)).product(product)
-                                // .attribute(attrs.get(ı)).build();
-                                // attributeValueRepository.save(attributeValueTwo);
-
-                                // }
                             }
 
                         }

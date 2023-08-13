@@ -65,28 +65,33 @@ const AddProduct = (props: Props) => {
       }
     } else {
       setSubCategories([]);
+      setAttributes([]);
     }
   };
 
   const handleSubCategoryChange = async (selectedSubCategory: string) => {
-    const attributesFetched = await getAttributes({
-      subCategoryId: selectedSubCategory,
-    });
-    if ("data" in attributesFetched) {
-      setAttributes(attributesFetched.data);
-      const attributeInitialValues = attributesFetched.data.reduce(
-        (acc: Object, attribute: AttributeI) => {
-          const fieldName = attribute.id;
-          return {
-            ...acc,
-            [fieldName]: "",
-          };
-        },
-        {},
-      );
-      setInitialValues((prev) => {
-        return { ...prev, attributes: attributeInitialValues };
+    if (parseInt(selectedSubCategory) > 0) {
+      const attributesFetched = await getAttributes({
+        subCategoryId: selectedSubCategory,
       });
+      if ("data" in attributesFetched) {
+        setAttributes(attributesFetched.data);
+        const attributeInitialValues = attributesFetched.data.reduce(
+          (acc: Object, attribute: AttributeI) => {
+            const fieldName = attribute.id;
+            return {
+              ...acc,
+              [fieldName]: "",
+            };
+          },
+          {},
+        );
+        setInitialValues((prev) => {
+          return { ...prev, attributes: attributeInitialValues };
+        });
+      }
+    } else {
+      setAttributes([]);
     }
   };
 

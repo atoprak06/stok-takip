@@ -304,7 +304,7 @@ const AddProduct = (props: Props) => {
                         const newValue =
                           e.target.value !== ""
                             ? parseFloat(e.target.value)
-                            : null;
+                            : "";
 
                         setFieldValue("attributes", {
                           ...values.attributes,

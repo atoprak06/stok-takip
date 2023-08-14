@@ -57,8 +57,13 @@ public class AttributeValueService {
                         }
 
                     } else if (type.equals("Number")) {
+                        String attributeValue = attrs.get(attributeId).toString();
+                        if (!attributeValue.isEmpty()) {
 
-                        value.setNumberValue(Integer.parseInt(attrs.get(attributeId).toString()));
+                            value.setNumberValue(Integer.parseInt(attributeValue));
+                        } else {
+                            value.setNumberValue(null);
+                        }
                     }
 
                     attributeValueRepository.save(value);
@@ -85,6 +90,13 @@ public class AttributeValueService {
                         }
 
                     } else if (type.equals("Number")) {
+                        String attributeValue = attrs.get(key).toString();
+                        if (!attributeValue.isEmpty()) {
+
+                            newValue.setNumberValue(Integer.parseInt(attributeValue));
+                        } else {
+                            newValue.setNumberValue(null);
+                        }
 
                         newValue.setNumberValue(Integer.parseInt(attrs.get(key).toString()));
                     }
@@ -116,8 +128,14 @@ public class AttributeValueService {
                 }
 
             } else if (type.equals("Number")) {
+                String attributeValue = attrs.get(key).toString();
+                if (!attributeValue.isEmpty()) {
 
-                newValue.setNumberValue(Integer.parseInt(attrs.get(key).toString()));
+                    newValue.setNumberValue(Integer.parseInt(attributeValue));
+                } else {
+                    newValue.setNumberValue(null);
+                }
+
             }
             attributeValueRepository.save(newValue);
 

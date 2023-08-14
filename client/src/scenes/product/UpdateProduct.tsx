@@ -170,14 +170,31 @@ const UpdateProduct = (props: Props) => {
             const attributeInitialValues = attributeValuesData.data.reduce(
               (acc: Object, attribute: AttributeValueI) => {
                 const attrId = attribute.attribute.id;
+                const attributeValueType = attribute.attribute.valueType.name;
+                let value;
 
+                if (attributeValueType === "String") {
+                  if (attribute.stringValue !== null) {
+                    value = attribute.stringValue;
+                  } else {
+                    value = "";
+                  }
+                } else if (attributeValueType === "Number") {
+                  if (attribute.numberValue !== null) {
+                    value = attribute.numberValue;
+                  } else {
+                    value = "";
+                  }
+                } else {
+                  if (attribute.booleanValue !== null) {
+                    value = attribute.booleanValue;
+                  } else {
+                    value = false;
+                  }
+                }
                 return {
                   ...acc,
-                  [attrId]: attribute.stringValue
-                    ? attribute.stringValue
-                    : attribute.numberValue
-                    ? attribute.numberValue
-                    : attribute.booleanValue,
+                  [attrId]: value,
                 };
               },
               {},
@@ -457,7 +474,7 @@ const UpdateProduct = (props: Props) => {
                         const newValue =
                           e.target.value !== ""
                             ? parseFloat(e.target.value)
-                            : null;
+                            : "";
 
                         setFieldValue("attributes", {
                           ...values.attributes,
